@@ -21,17 +21,35 @@ const apiCall = async (endpoint, options = {}) => {
 
     const url = `${API_BASE_URL}${endpoint}`;
     console.log('API Call:', url, options.method || 'GET');
+    if (options.body) {
+      // Don't log full password, but log other fields for debugging
+      try {
+        const bodyObj = JSON.parse(options.body);
+        const sanitizedBody = { ...bodyObj };
+        if (sanitizedBody.password) {
+          sanitizedBody.password = '***hidden***';
+        }
+        console.log('Request Body:', sanitizedBody);
+      } catch {
+        console.log('Request Body:', options.body.substring(0, 100));
+      }
+    }
 
     const response = await fetch(url, {
       headers,
       ...options,
     });
 
+    console.log('Response Status:', response.status, response.statusText);
+
     if (!response.ok) {
       let error;
       try {
         error = await response.json();
-      } catch {
+        console.log('Error Response:', error);
+      } catch (e) {
+        const text = await response.text();
+        console.log('Error Response (text):', text);
         error = { message: `Request failed with status ${response.status}` };
       }
 
