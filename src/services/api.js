@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://backend-ms-mo4m.onrender.com';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://backend-ms-production.up.railway.app/';
 
 // Helper function to get auth token
 const getAuthToken = () => {
