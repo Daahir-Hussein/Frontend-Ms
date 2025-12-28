@@ -142,7 +142,7 @@ const UserManagement = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">User Management</h1>
+        <h1 className="text-3xl font-bold text-gray-800">User Management</h1>
         <button
           onClick={handleCreateAccount}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
@@ -173,18 +173,18 @@ const UserManagement = () => {
       {/* Users Table */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-800">All User Accounts</h2>
+          <h2 className="text-xl font-semibold text-gray-800">All User Accounts</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Name</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Email</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Role</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Teacher</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Teacher</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -251,7 +251,7 @@ const UserManagement = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold text-gray-800">
+              <h2 className="text-xl font-bold text-gray-800">
                 {selectedUser ? 'Edit User Account' : 'Create Teacher Account'}
               </h2>
               <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-gray-700">

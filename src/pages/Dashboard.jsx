@@ -158,7 +158,7 @@ const Dashboard = () => {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Dashboard Overview</h1>
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">Dashboard Overview</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {cards.map((card, index) => {
@@ -196,7 +196,7 @@ const Dashboard = () => {
       {/* Finance Summary Card - Only for Admin */}
       {isAdmin() && (
         <div className="mt-6 bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Finance Overview</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Finance Overview</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-green-50 p-4 rounded-lg">
               <p className="text-sm text-gray-600 mb-1">Monthly Income</p>

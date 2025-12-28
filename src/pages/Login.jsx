@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { authAPI } from '../services/api';
@@ -12,20 +12,8 @@ const Login = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { user, login, loading: authLoading } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
-
-  // Redirect to dashboard (root) if already logged in (only after auth check is complete)
-  useEffect(() => {
-    // Wait for auth loading to complete before checking user
-    if (!authLoading) {
-      if (user) {
-        // User is authenticated, redirect to root (dashboard)
-        navigate('/', { replace: true });
-      }
-      // If no user, stay on login page (no redirect needed)
-    }
-  }, [user, authLoading, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -47,14 +35,14 @@ const Login = () => {
 
       // Login user with response data
       login(response.user);
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       console.error('Login error:', err);
       const errorMessage = err.message || 'Login failed. Please check your credentials.';
       
       // Provide helpful error message for connection issues
       if (errorMessage.includes('Cannot connect to backend') || errorMessage.includes('Failed to fetch')) {
-        setError('Cannot connect to backend server.\n\nPlease ensure:\n1. Backend server is running (run "npm start" in backend directory)\n2. Backend is running on port 3000\n3. MongoDB is running\n4. Check backend terminal for errors');
+        setError('Cannot connect to backend server. Please ensure the backend is running on port 3000.');
       } else {
         setError(errorMessage);
       }
@@ -62,18 +50,6 @@ const Login = () => {
       setLoading(false);
     }
   };
-
-  // Show loading while checking authentication - don't show login form until auth check is complete
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="text-center">
-          <div className="text-gray-500 mb-2">Loading...</div>
-          <div className="text-sm text-gray-400">Verifying authentication</div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -157,7 +133,7 @@ const Login = () => {
           </div> */}
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700 whitespace-pre-line">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
               {error}
             </div>
           )}

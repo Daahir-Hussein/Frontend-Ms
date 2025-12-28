@@ -116,7 +116,7 @@ const Classes = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Classes Management</h1>
+        <h1 className="text-3xl font-bold text-gray-800">Classes Management</h1>
         <button
           onClick={handleAdd}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
@@ -138,7 +138,11 @@ const Classes = () => {
           <div key={classItem._id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="text-lg font-bold text-gray-800">{classItem.className}</h3>
+                <h3 className="text-xl font-bold text-gray-800">{classItem.className}</h3>
+                <p className="text-sm text-gray-500">ID: {classItem.classId}</p>
+                {classItem.Parts && classItem.Parts !== 'None' && (
+                  <p className="text-sm text-gray-500">Part: {classItem.Parts}</p>
+                )}
               </div>
               <div className="flex gap-2">
                 <button
@@ -182,7 +186,7 @@ const Classes = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold text-gray-800">
+              <h2 className="text-xl font-bold text-gray-800">
                 {editingClass ? 'Update Class' : 'Create Class'}
               </h2>
               <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-gray-700">
@@ -205,13 +209,13 @@ const Classes = () => {
                 <input
                   type="text"
                   required
-                  placeholder=""
+                  placeholder="e.g., Grade 10"
                   value={formData.className}
                   onChange={(e) => setFormData({ ...formData, className: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              {/* <div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Part</label>
                 <select
                   value={formData.Parts}
@@ -226,7 +230,7 @@ const Classes = () => {
                   <option value="Part 4">Part 4</option>
                   <option value="Part 5">Part 5</option>
                 </select>
-              </div> */}
+              </div>
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"

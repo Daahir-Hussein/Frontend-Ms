@@ -198,7 +198,7 @@ const Finance = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Finance Management</h1>
+        <h1 className="text-3xl font-bold text-gray-800">Finance Management</h1>
         <button
           onClick={() => handleAdd('income')}
           className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2"
@@ -257,19 +257,19 @@ const Finance = () => {
       {/* Transactions Table */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-800">Recent Transactions</h2>
+          <h2 className="text-xl font-semibold text-gray-800">Recent Transactions</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Date</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Student</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Class</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Month</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Purpose</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Amount</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Class</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Month</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Purpose</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -320,7 +320,7 @@ const Finance = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold text-gray-800">
+              <h2 className="text-xl font-bold text-gray-800">
                 {editingTransaction ? 'Edit Transaction' : 'Add Payment'}
               </h2>
               <button 

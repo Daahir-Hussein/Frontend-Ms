@@ -30,6 +30,8 @@ const apiCall = async (endpoint, options = {}) => {
           sanitizedBody.password = '***hidden***';
         }
         console.log('Request Body:', sanitizedBody);
+        console.log('Full URL:', url);
+        console.log('Headers:', headers);
       } catch {
         console.log('Request Body:', options.body.substring(0, 100));
       }

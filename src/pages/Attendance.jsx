@@ -25,8 +25,8 @@ const Attendance = () => {
     // Auto-select class and teacher for teachers
     if (isTeacher() && user?.classId) {
       setSelectedClass(user.classId);
-      if (user.teacherId) {
-        setSelectedTeacher(user.teacherId);
+      if (user.id) {
+        setSelectedTeacher(user.id);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -178,7 +178,7 @@ const Attendance = () => {
     }
 
     // For teachers, ensure they can only submit attendance as themselves
-    if (isTeacher() && user?.teacherId && selectedTeacher !== user.teacherId) {
+    if (isTeacher() && user?.id && selectedTeacher !== user.id) {
       alert('You can only mark attendance as yourself');
       return;
     }
@@ -195,9 +195,11 @@ const Attendance = () => {
       // Use their status from attendance state, or default to 'Absent' if not marked
       const studentsArray = allStudents.map(student => {
         const status = attendance[student._id] || 'Absent'; // Default to Absent if not marked
+        // The shift field in the model expects an ObjectId reference to students
+        // So we use the student ID for shift as well (as per the model schema)
         return {
           studentName: student._id,
-          shift: student.shift, // Shift is a string enum: "Morning", "Noon", "AfterNoon", "Night", "Khamiis iyo Jimco"
+          shift: student.shift, // Shift is an ObjectId reference to students in the model
           status: status,
           date: new Date(attendanceDate) // Convert to Date object
         };
@@ -422,37 +424,43 @@ const Attendance = () => {
                     <div
                       key={student._id}
                       className={`
-                        flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-colors
+                        flex items-center justify-between p-4 rounded-lg border-2 transition-colors
                         ${status === 'Present' ? 'bg-green-50 border-green-300' : 
                           status === 'Absent' ? 'bg-red-50 border-red-300' : 
                           'bg-gray-50 border-gray-200'}
                       `}
-                      onClick={() => toggleAttendance(student._id)}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className={`
-                          w-10 h-10 rounded-full flex items-center justify-center
-                          ${status === 'Present' ? 'bg-green-500' : 
-                            status === 'Absent' ? 'bg-red-500' : 
-                            'bg-gray-300'}
-                        `}>
-                          {status === 'Present' ? (
-                            <FiCheck className="text-white" size={20} />
-                          ) : status === 'Absent' ? (
-                            <FiXIcon className="text-white" size={20} />
-                          ) : null}
-                        </div>
-                        <span className="font-medium text-gray-800">{student.fullName}</span>
-                        <span className="text-sm text-gray-500">({student.shift})</span>
+                      <span className="font-medium text-gray-800">{student.fullName}</span>
+                      <div className="flex items-center gap-4">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name={`attendance-${student._id}`}
+                            checked={status === 'Present'}
+                            onChange={() => {
+                              if (status !== 'Present') {
+                                toggleAttendance(student._id);
+                              }
+                            }}
+                            className="w-5 h-5 text-green-600 focus:ring-green-500"
+                          />
+                          <span className="text-sm font-medium text-green-700">Present</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name={`attendance-${student._id}`}
+                            checked={status === 'Absent'}
+                            onChange={() => {
+                              if (status !== 'Absent') {
+                                toggleAttendance(student._id);
+                              }
+                            }}
+                            className="w-5 h-5 text-red-600 focus:ring-red-500"
+                          />
+                          <span className="text-sm font-medium text-red-700">Absent</span>
+                        </label>
                       </div>
-                      <span className={`
-                        px-3 py-1 rounded-full text-sm font-medium
-                        ${status === 'Present' ? 'bg-green-200 text-green-800' : 
-                          status === 'Absent' ? 'bg-red-200 text-red-800' : 
-                          'bg-gray-200 text-gray-600'}
-                      `}>
-                        {status === 'Present' ? 'Present' : status === 'Absent' ? 'Absent' : 'Click to mark'}
-                      </span>
                     </div>
                   );
                 })}

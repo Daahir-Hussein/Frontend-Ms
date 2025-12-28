@@ -16,8 +16,7 @@ const Students = () => {
   const [error, setError] = useState(null);
   const [progressing, setProgressing] = useState(false);
   const [showProgressModal, setShowProgressModal] = useState(false);
-  const [selectedParts, setSelectedParts] = useState([]);
-  const [progressMode, setProgressMode] = useState('all'); // 'all', 'byPart'
+  const [selectedPartsToProgress, setSelectedPartsToProgress] = useState([]);
   const [formData, setFormData] = useState({
     fullName: '',
     classId: '',
@@ -133,37 +132,52 @@ const Students = () => {
     }
   };
 
-  const handleProgressEnglishParts = async () => {
-    let options = {};
-    
-    if (progressMode === 'byPart' && selectedParts.length > 0) {
-      options.fromParts = selectedParts;
+  const handleProgressEnglishParts = () => {
+    setSelectedPartsToProgress([]);
+    setShowProgressModal(true);
+  };
+
+  const handleProgressSubmit = async () => {
+    if (selectedPartsToProgress.length === 0) {
+      alert('Please select at least one part to progress');
+      return;
+    }
+
+    const partsList = selectedPartsToProgress.join(', ');
+    if (!window.confirm(`Are you sure you want to progress English students from the following part(s)?\n\n${partsList}\n\nThis action cannot be undone.`)) {
+      return;
     }
     
     try {
       setProgressing(true);
-      const result = await studentAPI.progressEnglishParts(options);
-      alert(`✅ ${result.message}\n\nUpdated: ${result.updated} students\n\nDetails:\n${Object.entries(result.details || {}).map(([key, value]) => value > 0 ? `${key}: ${value}` : '').filter(Boolean).join('\n') || 'No progressions made'}`);
-      await fetchStudents();
       setShowProgressModal(false);
-      setSelectedParts([]);
-      setProgressMode('all');
+      const result = await studentAPI.progressEnglishParts({ fromParts: selectedPartsToProgress });
+      alert(`✅ ${result.message}\n\nUpdated: ${result.updated} students\n\nDetails:\n${Object.entries(result.details || {}).map(([key, value]) => `${key}: ${value}`).join('\n')}`);
+      await fetchStudents();
     } catch (err) {
       alert('Failed to progress English parts: ' + err.message);
     } finally {
       setProgressing(false);
+      setSelectedPartsToProgress([]);
     }
   };
 
   const togglePartSelection = (part) => {
-    setSelectedParts(prev => 
-      prev.includes(part) 
-        ? prev.filter(p => p !== part)
-        : [...prev, part]
-    );
+    if (selectedPartsToProgress.includes(part)) {
+      setSelectedPartsToProgress(selectedPartsToProgress.filter(p => p !== part));
+    } else {
+      setSelectedPartsToProgress([...selectedPartsToProgress, part]);
+    }
   };
 
-  const allParts = ["Part 0", "Part 1", "Part 2", "Part 3", "Part 4", "Part 5", "Part 6", "Part 7", "New Top One", "Top One"];
+  const selectAllParts = () => {
+    const allParts = ['Part 0', 'Part 1', 'Part 2', 'Part 3', 'Part 4', 'Part 5', 'Part 6', 'Part 7', 'New Top One', 'Top One'];
+    setSelectedPartsToProgress(allParts);
+  };
+
+  const clearAllParts = () => {
+    setSelectedPartsToProgress([]);
+  };
 
   if (loading) {
     return (
@@ -182,10 +196,10 @@ const Students = () => {
         {isAdmin() && (
           <div className="flex gap-3">
             <button
-              onClick={() => setShowProgressModal(true)}
+              onClick={handleProgressEnglishParts}
               disabled={progressing}
               className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Progress English students to next part (manual control)"
+              title="Progress English students to next part - select which parts to progress"
             >
               <FiRefreshCw size={20} className={progressing ? 'animate-spin' : ''} />
               {progressing ? 'Progressing...' : 'Progress English Parts'}
@@ -251,6 +265,10 @@ const Students = () => {
               <option value="Part 3">Part 3</option>
               <option value="Part 4">Part 4</option>
               <option value="Part 5">Part 5</option>
+              <option value="Part 6">Part 6</option>
+              <option value="Part 7">Part 7</option>
+              <option value="New Top One">New Top One</option>
+              <option value="Top One">Top One</option>
               <option value="Congratulations">Congratulations</option>
             </select>
           </div>
@@ -300,9 +318,13 @@ const Students = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shift</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Emergency Phone</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                {isAdmin() && (
+                  <>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Emergency Phone</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </>
+                )}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -313,11 +335,11 @@ const Students = () => {
                     {student.classId?.className || 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{student.shift}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{student.phone}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{student.emergencyPhone}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    {isAdmin() && (
-                      <>
+                  {isAdmin() && (
+                    <>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{student.phone}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{student.emergencyPhone}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
                           onClick={() => handleEdit(student)}
                           className="text-blue-600 hover:text-blue-900 mr-3"
@@ -330,10 +352,9 @@ const Students = () => {
                         >
                           <FiTrash2 size={18} />
                         </button>
-                      </>
-                    )}
-                    {isTeacher() && <span className="text-gray-400 text-xs">View Only</span>}
-                  </td>
+                      </td>
+                    </>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -475,97 +496,108 @@ const Students = () => {
       {/* Progress English Parts Modal */}
       {showProgressModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-gray-800">Progress English Parts</h2>
+              <h2 className="text-xl font-bold text-gray-800">
+                Progress English Parts
+                {selectedPartsToProgress.length > 0 && (
+                  <span className="ml-2 text-green-600">({selectedPartsToProgress.length})</span>
+                )}
+              </h2>
               <button 
                 onClick={() => {
                   setShowProgressModal(false);
-                  setSelectedParts([]);
-                  setProgressMode('all');
-                }}
+                  setSelectedPartsToProgress([]);
+                }} 
                 className="text-gray-500 hover:text-gray-700"
               >
                 <FiX size={24} />
               </button>
             </div>
-
+            
             <div className="mb-4">
-              <p className="text-gray-600 mb-4">
-                Choose how you want to progress English students. Some parts may progress monthly, while others take longer.
+              <p className="text-sm text-gray-600 mb-4">
+                Select parts to progress. Students will move to the next part.
               </p>
-
-              <div className="space-y-3 mb-4">
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="progressMode"
-                    value="all"
-                    checked={progressMode === 'all'}
-                    onChange={(e) => setProgressMode(e.target.value)}
-                    className="w-4 h-4 text-blue-600"
-                  />
-                  <span className="text-gray-700">Progress All English Students</span>
-                </label>
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="progressMode"
-                    value="byPart"
-                    checked={progressMode === 'byPart'}
-                    onChange={(e) => setProgressMode(e.target.value)}
-                    className="w-4 h-4 text-blue-600"
-                  />
-                  <span className="text-gray-700">Progress Students by Specific Part(s)</span>
-                </label>
+              
+              <div className="flex gap-2 mb-4">
+                <button
+                  type="button"
+                  onClick={selectAllParts}
+                  className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200"
+                >
+                  Select All
+                </button>
+                <button
+                  type="button"
+                  onClick={clearAllParts}
+                  className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                >
+                  Clear All
+                </button>
               </div>
 
-              {progressMode === 'byPart' && (
-                <div className="border border-gray-200 rounded-lg p-4 max-h-60 overflow-y-auto">
-                  <p className="text-sm font-medium text-gray-700 mb-2">Select parts to progress:</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {allParts.map(part => (
-                      <label key={part} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
-                        <input
-                          type="checkbox"
-                          checked={selectedParts.includes(part)}
-                          onChange={() => togglePartSelection(part)}
-                          className="w-4 h-4 text-blue-600"
-                        />
-                        <span className="text-sm text-gray-700">{part}</span>
-                      </label>
-                    ))}
-                  </div>
-                  {selectedParts.length > 0 && (
-                    <p className="text-xs text-gray-500 mt-2">
-                      Selected: {selectedParts.join(', ')}
-                    </p>
-                  )}
-                </div>
-              )}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {[
+                  { part: 'Part 0', next: 'Part 1' },
+                  { part: 'Part 1', next: 'Part 2' },
+                  { part: 'Part 2', next: 'Part 3' },
+                  { part: 'Part 3', next: 'Part 4' },
+                  { part: 'Part 4', next: 'Part 5' },
+                  { part: 'Part 5', next: 'Part 6' },
+                  { part: 'Part 6', next: 'Part 7' },
+                  { part: 'Part 7', next: 'New Top One' },
+                  { part: 'New Top One', next: 'Top One' },
+                  { part: 'Top One', next: 'Congratulations' }
+                ].map(({ part, next }) => (
+                  <label
+                    key={part}
+                    className={`
+                      flex items-center gap-2 p-3 border-2 rounded-lg cursor-pointer transition-colors
+                      ${selectedPartsToProgress.includes(part)
+                        ? 'border-green-500 bg-green-50'
+                        : 'border-gray-200 bg-white hover:border-gray-300'
+                      }
+                    `}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedPartsToProgress.includes(part)}
+                      onChange={() => togglePartSelection(part)}
+                      className="w-4 h-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-800">{part}</div>
+                      <div className="text-xs text-gray-500">→ {next}</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-3 pt-4 border-t">
               <button
-                onClick={handleProgressEnglishParts}
-                disabled={progressing || (progressMode === 'byPart' && selectedParts.length === 0)}
-                className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                onClick={handleProgressSubmit}
+                disabled={selectedPartsToProgress.length === 0 || progressing}
+                className="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold"
               >
+                <FiRefreshCw size={18} className={progressing ? 'animate-spin' : ''} />
                 {progressing ? (
-                  <>
-                    <FiRefreshCw className="animate-spin" size={20} />
-                    Progressing...
-                  </>
+                  'Progressing...'
+                ) : selectedPartsToProgress.length === 0 ? (
+                  'Select Parts'
                 ) : (
-                  'Progress Students'
+                  <>
+                    <span className="text-lg font-bold">{selectedPartsToProgress.length}</span>
+                    <span>Part{selectedPartsToProgress.length !== 1 ? 's' : ''}</span>
+                  </>
                 )}
               </button>
               <button
                 type="button"
                 onClick={() => {
                   setShowProgressModal(false);
-                  setSelectedParts([]);
-                  setProgressMode('all');
+                  setSelectedPartsToProgress([]);
                 }}
                 className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300"
               >
