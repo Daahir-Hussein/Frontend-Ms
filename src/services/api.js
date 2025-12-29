@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://backend-ms-production.up.railway.app';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 // Helper function to get auth token
 const getAuthToken = () => {
@@ -21,37 +21,17 @@ const apiCall = async (endpoint, options = {}) => {
 
     const url = `${API_BASE_URL}${endpoint}`;
     console.log('API Call:', url, options.method || 'GET');
-    if (options.body) {
-      // Don't log full password, but log other fields for debugging
-      try {
-        const bodyObj = JSON.parse(options.body);
-        const sanitizedBody = { ...bodyObj };
-        if (sanitizedBody.password) {
-          sanitizedBody.password = '***hidden***';
-        }
-        console.log('Request Body:', sanitizedBody);
-        console.log('Full URL:', url);
-        console.log('Headers:', headers);
-      } catch {
-        console.log('Request Body:', options.body.substring(0, 100));
-      }
-    }
 
     const response = await fetch(url, {
       headers,
       ...options,
     });
 
-    console.log('Response Status:', response.status, response.statusText);
-
     if (!response.ok) {
       let error;
       try {
         error = await response.json();
-        console.log('Error Response:', error);
-      } catch (e) {
-        const text = await response.text();
-        console.log('Error Response (text):', text);
+      } catch {
         error = { message: `Request failed with status ${response.status}` };
       }
 
@@ -81,9 +61,10 @@ const apiCall = async (endpoint, options = {}) => {
     console.error('API Error:', error);
     
     // Handle network errors
-    if (error.message === 'Failed to fetch' || error.name === 'TypeError' || error.message.includes('Failed to fetch')) {
-      const errorMessage = `Cannot connect to backend server at ${API_BASE_URL}.\n\nPlease ensure:\n1. Backend server is running (run 'npm start' in backend directory)\n2. Backend is running on port 3000\n3. MongoDB is running\n4. Check browser console for CORS errors`;
-      throw new Error(errorMessage);
+    if (error.message === 'Failed to fetch' || error.name === 'TypeError') {
+      throw new Error(
+        `Cannot connect to backend server. Please ensure the backend is running on ${API_BASE_URL}`
+      );
     }
     
     throw error;
@@ -105,9 +86,8 @@ export const studentAPI = {
   delete: (id) => apiCall(`/delete/student/${id}`, {
     method: 'DELETE',
   }),
-  progressEnglishParts: (options = {}) => apiCall('/progress/english-parts', {
+  progressEnglishParts: () => apiCall('/progress/english-parts', {
     method: 'POST',
-    body: JSON.stringify(options),
   }),
 };
 
@@ -242,13 +222,32 @@ export const userAPI = {
 export const dashboardAPI = {
   getStats: async () => {
     try {
-      const [students, teachers, classes, attendance, finance] = await Promise.all([
+      // Fetch critical data first (students, teachers, classes, attendance)
+      // These are accessible to both admin and teacher
+      const [students, teachers, classes, attendance] = await Promise.all([
         studentAPI.getAll(),
         teacherAPI.getAll(),
         classAPI.getAll(),
         attendanceAPI.getAll(),
-        financeAPI.getAll(),
       ]);
+
+      // Try to fetch finance data separately
+      // Finance endpoint requires admin role, so it may fail for teachers
+      let finance = [];
+      try {
+        finance = await financeAPI.getAll();
+      } catch (error) {
+        // If finance API fails due to access denied (403), use empty array
+        // This is expected for non-admin users (teachers)
+        if (error.message && error.message.includes('Access denied')) {
+          // Silently handle - teachers don't have access to finance data
+          finance = [];
+        } else {
+          // Log other errors but don't fail the entire dashboard
+          console.warn('Failed to fetch finance data:', error.message);
+          finance = [];
+        }
+      }
 
       // Calculate today's attendance
       const today = new Date().toISOString().split('T')[0];
@@ -267,7 +266,7 @@ export const dashboardAPI = {
         }
       });
 
-      // Calculate finance totals
+      // Calculate finance totals (default to 0 if finance data unavailable)
       const totalIncome = finance.reduce((sum, f) => sum + (f.amountPaid || 0), 0);
       const currentMonth = new Date().toLocaleString('default', { month: 'long' });
       const currentYear = new Date().getFullYear();
