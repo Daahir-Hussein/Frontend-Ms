@@ -22,46 +22,57 @@ const Dashboard = () => {
     const fetchStats = async () => {
       try {
         setLoading(true);
-        const data = await dashboardAPI.getStats();
         
-        // Filter stats for teachers - only show their class data
-        if (isTeacher() && user?.classId) {
+        // For teachers, fetch only their class data
+        if (isTeacher()) {
           // Fetch students and attendance filtered by class
           const { studentAPI, attendanceAPI } = await import('../services/api');
-          const allStudents = await studentAPI.getAll();
-          const allAttendance = await attendanceAPI.getAll();
           
-          // Filter students by teacher's class
-          const classStudents = allStudents.filter(s => 
-            s.classId?._id === user.classId || s.classId === user.classId
-          );
-          
-          // Filter attendance by teacher's class
-          const classAttendance = allAttendance.filter(att => 
-            att.classId?._id === user.classId || att.classId === user.classId
-          );
-          
-          // Calculate today's attendance for this class
-          const today = new Date().toISOString().split('T')[0];
-          const todayAttendance = classAttendance.filter((att) => {
-            if (att.students && att.students.length > 0) {
-              const attDate = new Date(att.students[0].date).toISOString().split('T')[0];
-              return attDate === today;
-            }
-            return false;
-          });
-          
+          let classStudents = [];
+          let classAttendance = [];
           let todayPresentCount = 0;
-          todayAttendance.forEach((att) => {
-            if (att.students) {
-              todayPresentCount += att.students.filter((s) => s.status === 'Present').length;
+          
+          // Only fetch data if teacher has a classId assigned
+          if (user?.classId) {
+            try {
+              const allStudents = await studentAPI.getAll();
+              const allAttendance = await attendanceAPI.getAll();
+              
+              // Filter students by teacher's class
+              classStudents = allStudents.filter(s => 
+                s.classId?._id === user.classId || s.classId === user.classId
+              );
+              
+              // Filter attendance by teacher's class
+              classAttendance = allAttendance.filter(att => 
+                att.classId?._id === user.classId || att.classId === user.classId
+              );
+              
+              // Calculate today's attendance for this class
+              const today = new Date().toISOString().split('T')[0];
+              const todayAttendance = classAttendance.filter((att) => {
+                if (att.students && att.students.length > 0) {
+                  const attDate = new Date(att.students[0].date).toISOString().split('T')[0];
+                  return attDate === today;
+                }
+                return false;
+              });
+              
+              todayAttendance.forEach((att) => {
+                if (att.students) {
+                  todayPresentCount += att.students.filter((s) => s.status === 'Present').length;
+                }
+              });
+            } catch (err) {
+              console.error('Error fetching teacher data:', err);
+              // Continue with empty data if fetch fails
             }
-          });
+          }
           
           setStats({
             totalStudents: classStudents.length,
             totalTeachers: 1, // Only themselves
-            totalClasses: 1, // Only their class
+            totalClasses: user?.classId ? 1 : 0, // Only their class if assigned
             todayAttendance: todayPresentCount,
             financeOverview: {
               income: 0, // Teachers don't see finance
@@ -69,6 +80,8 @@ const Dashboard = () => {
             }
           });
         } else {
+          // For admins, fetch all stats
+          const data = await dashboardAPI.getStats();
           setStats(data);
         }
         setError(null);
