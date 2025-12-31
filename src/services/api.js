@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://backend-ms-production.up.railway.app';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 // Helper function to get auth token
 const getAuthToken = () => {
@@ -222,32 +222,13 @@ export const userAPI = {
 export const dashboardAPI = {
   getStats: async () => {
     try {
-      // Fetch critical data first (students, teachers, classes, attendance)
-      // These are accessible to both admin and teacher
-      const [students, teachers, classes, attendance] = await Promise.all([
+      const [students, teachers, classes, attendance, finance] = await Promise.all([
         studentAPI.getAll(),
         teacherAPI.getAll(),
         classAPI.getAll(),
         attendanceAPI.getAll(),
+        financeAPI.getAll(),
       ]);
-
-      // Try to fetch finance data separately
-      // Finance endpoint requires admin role, so it may fail for teachers
-      let finance = [];
-      try {
-        finance = await financeAPI.getAll();
-      } catch (error) {
-        // If finance API fails due to access denied (403), use empty array
-        // This is expected for non-admin users (teachers)
-        if (error.message && error.message.includes('Access denied')) {
-          // Silently handle - teachers don't have access to finance data
-          finance = [];
-        } else {
-          // Log other errors but don't fail the entire dashboard
-          console.warn('Failed to fetch finance data:', error.message);
-          finance = [];
-        }
-      }
 
       // Calculate today's attendance
       const today = new Date().toISOString().split('T')[0];
@@ -266,7 +247,7 @@ export const dashboardAPI = {
         }
       });
 
-      // Calculate finance totals (default to 0 if finance data unavailable)
+      // Calculate finance totals
       const totalIncome = finance.reduce((sum, f) => sum + (f.amountPaid || 0), 0);
       const currentMonth = new Date().toLocaleString('default', { month: 'long' });
       const currentYear = new Date().getFullYear();

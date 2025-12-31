@@ -136,6 +136,18 @@ const Attendance = () => {
     setSubmitted(false);
     setSelectedShift('');
     setSelectedPart('');
+    
+    // Auto-select the teacher assigned to this class (for admins)
+    if (isAdmin()) {
+      const assignedTeacher = teachers.find(t => 
+        t.classId?._id === classId || t.classId === classId
+      );
+      if (assignedTeacher) {
+        setSelectedTeacher(assignedTeacher._id);
+      } else {
+        setSelectedTeacher('');
+      }
+    }
   };
 
   const toggleAttendance = (studentId) => {
@@ -168,6 +180,17 @@ const Attendance = () => {
   const handleSubmit = async () => {
     if (!selectedClass || !selectedTeacher) {
       alert('Please select both class and teacher');
+      return;
+    }
+
+    // Verify that the selected teacher is assigned to the selected class
+    const assignedTeacher = teachers.find(t => 
+      (t.classId?._id === selectedClass || t.classId === selectedClass) && 
+      (t._id === selectedTeacher)
+    );
+    
+    if (!assignedTeacher) {
+      alert('Only the teacher assigned to this class can take attendance');
       return;
     }
 
@@ -284,14 +307,14 @@ const Attendance = () => {
                 onChange={(e) => setSelectedTeacher(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 required
+                disabled={selectedClass && !classTeacher}
               >
                 <option value="">Select teacher...</option>
-                {classTeacher && (
+                {classTeacher ? (
                   <option value={classTeacher._id}>{classTeacher.fullName}</option>
-                )}
-                {teachers.map((teacher) => (
-                  <option key={teacher._id} value={teacher._id}>{teacher.fullName}</option>
-                ))}
+                ) : selectedClass ? (
+                  <option value="" disabled>No teacher assigned to this class</option>
+                ) : null}
               </select>
             )}
           </div>
