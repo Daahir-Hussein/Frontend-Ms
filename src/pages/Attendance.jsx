@@ -25,8 +25,9 @@ const Attendance = () => {
     // Auto-select class and teacher for teachers
     if (isTeacher() && user?.classId) {
       setSelectedClass(user.classId);
-      if (user.id) {
-        setSelectedTeacher(user.id);
+      // Use teacherId (from teacher collection) not user.id
+      if (user.teacherId) {
+        setSelectedTeacher(user.teacherId);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -201,7 +202,7 @@ const Attendance = () => {
     }
 
     // For teachers, ensure they can only submit attendance as themselves
-    if (isTeacher() && user?.id && selectedTeacher !== user.id) {
+    if (isTeacher() && user?.teacherId && selectedTeacher !== user.teacherId) {
       alert('You can only mark attendance as yourself');
       return;
     }
