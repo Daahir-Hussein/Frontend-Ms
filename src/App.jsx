@@ -15,11 +15,11 @@ import UserManagement from './pages/UserManagement';
 import Profile from './pages/Profile';
 
 const AppRoutes = () => {
-  const { user } = useAuth();
+  const { user, loading, isAdmin, isTeacher } = useAuth();
 
   return (
     <Routes>
-      {/* Root path shows dashboard (protected) - requires authentication */}
+      {/* Root path shows dashboard (protected) - role-based access */}
       <Route
         path="/"
         element={
